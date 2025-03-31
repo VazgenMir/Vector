@@ -10,6 +10,8 @@ public:
 
     _vector();
     _vector(int size);
+    _vector(const _vector& other);
+    _vector(_vector&& other);
     ~_vector();
 
     void _push_back(const T& value);
@@ -62,6 +64,7 @@ template <typename T>
 _vector<T>::_vector() {
     m_data = new T[0];
     m_end = m_data;
+    m_capacity = m_end;
 }
 
 template <typename T>
@@ -80,6 +83,40 @@ _vector<T>::_vector(int size) {
         }
     }
     m_end = m_data + size;
+}
+
+template <typename T>
+_vector<T>::_vector(const _vector& other) {
+    size_t size = other.m_end - other.m_data;
+    if(size <= 2) {
+        m_data = new T[size]; 
+    } else {
+        int i = 2;
+        while(i <= size) {
+            if(i % 2 == 0 && i * 2 >= size) {
+                m_data = new T[i * 2];
+                m_capacity = m_data + i * 2;
+                break;
+            }
+            i = i * 2;
+        }
+        std::copy(other.m_data, other.m_end, m_data);
+        std::cout << "Copy constructor called\n";
+    }
+    m_end = m_data + size;
+}
+
+template <typename T>
+_vector<T>::_vector(_vector&& other) {
+    m_data = other.m_data;
+    m_end = other.m_end;
+    m_capacity = other.m_capacity;
+
+    other.m_data = nullptr;
+    other.m_end = nullptr;
+    other.m_capacity = nullptr;
+
+    std::cout << "Move constructor called\n";
 }
 
 template <typename T>
@@ -229,7 +266,9 @@ T& _vector<T>::_back() {
 }
 
 int main() {
-    _vector<int> vector(10);
+    _vector<int> vec1(10);
+    _vector vecto = vec1;
+     _vector vector = std::move(vec1);
     _vector<int>::_reverse_iterator it = vector._rbegin();
     std::cout << "capacity:" << vector._capacity() << std::endl;
     std::cout << "size:" << vector._size() << std::endl;
